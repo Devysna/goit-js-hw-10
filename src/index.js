@@ -8,28 +8,34 @@ const countryList = document.querySelector('.country-list');
 const countryInfo = document.querySelector('.country-info');
 const DEBOUNCE_DELAY = 300;
 
-inputSearch.addEventListener('input',
-    debounce(e => {
-        const inputValue = inputSearch.value.trim();
-        cleanHtml();
-        if (inputValue  !=='') {
-            fetchCountries(inputValue)
-                .then(foundList => {                    
-                    if (foundList.length > 10) {
-                        Notiflix.Notify.info('Too many matches found. Please enter a more specific name.');
-                    } else if (foundList.length === 0) {
-                        Notiflix.Notify.failure('Oops, there is no country with that name');
-                    } 
-                    else if (foundList.length >= 2 && foundList.length <= 10) {         
-                        renderCountryList(foundList);
-                    } else if (foundList.length === 1) {    
-                        renderCountryInfo(foundList);
-                    }            
-                });
-        }
-    }, DEBOUNCE_DELAY)
-);
+inputSearch.addEventListener('input', debounce(handleSearchInput, DEBOUNCE_DELAY));
 
+function handleSearchInput() {
+    const inputValue = inputSearch.value.trim();
+    cleanHtml();
+
+    if (!inputValue) {return;}
+
+    fetchCountries(inputValue)
+    .then(foundList => renderResponse(foundList));
+};
+
+function cleanHtml() {
+  countryList.innerHTML = '';
+  countryInfo.innerHTML = '';
+};
+
+function renderResponse(foundList){
+    if (foundList.length > 10) {
+        Notiflix.Notify.info('Too many matches found. Please enter a more specific name.');
+    } else if (foundList.length === 0) {
+        Notiflix.Notify.failure('Oops, there is no country with that name');
+    } else if (foundList.length >= 2) {
+        renderCountryList(foundList);
+    } else {
+        renderCountryInfo(foundList);
+    }
+};
 
 function renderCountryList(countries) {
     const markupList = countries
@@ -61,9 +67,4 @@ function renderCountryInfo(countries) {
         })
         .join('');
       countryInfo.innerHTML = markupInfo;
-};
-
-function cleanHtml() {
-  countryList.innerHTML = '';
-  countryInfo.innerHTML = '';
 };
